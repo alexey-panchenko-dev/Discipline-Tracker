@@ -1,0 +1,49 @@
+# Executables & Binaries (Скомпилированные бинарники Go)
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go build outputs (Результаты сборки)
+/bin/
+/dist/
+/build/
+main
+api
+
+# Environment variables & Local Configs (Секреты и локальные конфиги)
+*.env
+*.env.local
+configs/local.yaml
+
+# Dependency / Vendor directory (Если используешь vendor, раскомментируй)
+# /vendor/
+
+# Operating System Files (Системные файлы)
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and Code Editors (Файлы настроек редакторов)
+# VS Code
+.vscode/
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains (GoLand / CLion / IntelliJ)
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Temporary / Log files (Логи и временные файлы)
+*.log
+*.tmp
+*.bak
