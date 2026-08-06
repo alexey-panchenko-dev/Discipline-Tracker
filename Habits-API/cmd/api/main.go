@@ -12,7 +12,6 @@ func main() {
 	repo := repository.NewTaskRepo()
 	taskHandler := handler.NewTaskHandler(repo)
 
-
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("ОК"))
 	})
@@ -23,8 +22,12 @@ func main() {
 			taskHandler.CreateTaskHandler(w, r)
 		case http.MethodGet:
 			taskHandler.GetTasksHandler(w, r)
-		case http.MethodPut, http.MethodPatch:
+		case http.MethodPut:
+			taskHandler.UpdateTaskHandler(w, r)
+		case http.MethodPatch:
 			taskHandler.MarkDoneHandler(w, r)
+		case http.MethodDelete:
+			taskHandler.DeleteTaskHandler(w, r)
 		default:
 			http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
 		}
@@ -32,5 +35,4 @@ func main() {
 
 	log.Println("Server is running on port:8080")
 	http.ListenAndServe(":8080", nil)
-	//запустил сервер, он ждет
 }

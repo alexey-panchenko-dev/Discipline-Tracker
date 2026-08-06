@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"habits-api/internal/model"
 	"habits-api/internal/repository" // импортируем пакет репозитория, чтобы хэндлер умел обращаться к хранилищу задач
 	"net/http"
 	"strconv"
@@ -86,4 +87,80 @@ func (h *TaskHandler) MarkDoneHandler(w http.ResponseWriter, r *http.Request) {
         w.WriteHeader(http.StatusOK)
         json.NewEncoder(w).Encode(updatedTask)
     }
+}
+
+func (h *TaskHandler) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "application/json")
+    
+    if r.Method != http.MethodDelete {
+        http.Error(w, "Метод не поддреживается", http.StatusMethodNotAllowed)
+        return
+    }
+
+    idStr := r.URL.Query().Get("id")
+    id, err := strconv.ParseInt(idStr, 10, 64)
+    
+    if err != nil {
+        http.Error(w, "Некорректный ID", http.StatusBadRequest)
+        return
+    }
+
+    deletedTask, isDelete := h.repo.DeleteTask(id)
+
+    if !isDelete {
+        http.Error(w, "Задача не найдена", http.StatusNotFound)
+        return 
+    } else {
+        w.WriteHeader(http.StatusOK)
+        json.NewEncoder(w).Encode(deletedTask)
+    }
+}
+
+type UpdateTaskInput struct {
+	Title *string `json:"title"`
+	Desc  *string `json:"desc"`
+}
+
+func (h *TaskHandler) UpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Некорректный ID", http.StatusBadRequest)
+		return
+	}
+
+	var input UpdateTaskInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Некорректный JSON", http.StatusBadRequest)
+		return
+	}
+
+	if input.Title == nil && input.Desc == nil {
+		http.Error(w, "Не передано ни одного поля для обновления", http.StatusBadRequest)
+		return
+	}
+
+	var updatedTask model.Task
+	var found bool
+
+	if input.Title != nil {
+		updatedTask, found = h.repo.UpdateTaskTitle(id, *input.Title)
+		if !found {
+			http.Error(w, "Задача не найдена", http.StatusNotFound)
+			return
+		}
+	}
+
+	if input.Desc != nil {
+		updatedTask, found = h.repo.UpdateTaskDesc(id, *input.Desc)
+		if !found {
+			http.Error(w, "Задача не найдена", http.StatusNotFound)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updatedTask)
 }

@@ -35,7 +35,7 @@ func (r *TaskRepo) CreateTask(title, desc string) model.Task { // создаю �
 	return task // возвращаю таск
 }
 
-func (r *TaskRepo) GetTasks() []model.Task{ // отправляю по запросу все таски из слайса
+func (r *TaskRepo) GetTasks() []model.Task{
 	return r.Tasks
 }
 
@@ -47,5 +47,35 @@ func (r *TaskRepo) MarkDone(id int64) (model.Task, bool) {
 		}
 	}
 
+	return model.Task{}, false
+}
+
+func (r *TaskRepo) DeleteTask(id int64) (model.Task, bool) {
+	for i, task := range r.Tasks {
+		if task.ID == id {
+			r.Tasks = append(r.Tasks[:i], r.Tasks[i+1:]...)
+			return task, true
+		}
+	}
+	return model.Task{}, false
+}
+
+func (r *TaskRepo) UpdateTaskTitle(id int64, title string) (model.Task, bool) {
+	for i, task := range r.Tasks {
+		if task.ID == id {
+			r.Tasks[i].Title = title
+			return r.Tasks[i], true
+		}
+	}
+	return model.Task{}, false
+}
+
+func (r *TaskRepo) UpdateTaskDesc(id int64, desc string) (model.Task, bool) {
+	for i, task := range r.Tasks {
+		if task.ID == id {
+			r.Tasks[i].Title = desc
+			return r.Tasks[i], true
+		}
+	}
 	return model.Task{}, false
 }
