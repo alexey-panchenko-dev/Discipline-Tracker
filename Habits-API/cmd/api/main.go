@@ -1,6 +1,10 @@
 package main
 
 import (
+	_ "habits-api/docs"
+
+	httpSwagger "github.com/swaggo/http-swagger"
+
 	"log"
 	"net/http"
 
@@ -8,15 +12,39 @@ import (
 	"habits-api/internal/repository"
 )
 
+func enableCORS(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next(w, r)
+	}
+}
+
+// @title           Habits & Tasks API
+// @version         1.0
+// @host            localhost:8080
+// @BasePath        /
 func main() {
-	repo := repository.NewTaskRepo()
+	db := repository.InitDB()
+	defer db.Close()
+
+	repo := repository.NewTaskRepo(db)
 	taskHandler := handler.NewTaskHandler(repo)
 
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/health", enableCORS(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("ОК"))
-	})
+	}))
 
-	http.HandleFunc("/tasks", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
+
+	http.HandleFunc("/tasks", enableCORS(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
 			taskHandler.CreateTaskHandler(w, r)
@@ -31,7 +59,7 @@ func main() {
 		default:
 			http.Error(w, "Метод не поддерживается", http.StatusMethodNotAllowed)
 		}
-	})
+	}))
 
 	log.Println("Server is running on port:8080")
 	http.ListenAndServe(":8080", nil)

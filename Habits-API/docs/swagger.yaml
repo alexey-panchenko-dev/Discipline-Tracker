@@ -1,0 +1,203 @@
+basePath: /
+definitions:
+  handler.CreateTaskInput:
+    properties:
+      desc:
+        example: Разметить хэндлеры аннотациями для генерации документации
+        type: string
+      title:
+        example: Выучить Swagger
+        type: string
+    type: object
+  handler.UpdateTaskInput:
+    properties:
+      desc:
+        example: Обновленное описание задачи
+        type: string
+      title:
+        example: Обновленный заголовок
+        type: string
+    type: object
+  model.Task:
+    properties:
+      created_at:
+        example: "2026-08-09T00:00:00Z"
+        type: string
+      desc:
+        example: Разметить хэндлеры аннотациями
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      is_done:
+        example: false
+        type: boolean
+      title:
+        example: Выучить Swagger
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST API для управления списком задач на Go и PostgreSQL.
+  title: Habits & Tasks API
+  version: "1.0"
+paths:
+  /tasks:
+    delete:
+      description: Удаляет задачу из базы данных по её UUID и возвращает удалённый
+        объект.
+      parameters:
+      - description: UUID задачи
+        format: uuid
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Task'
+        "400":
+          description: Не указан ID задачи
+          schema:
+            type: string
+        "404":
+          description: Задача не найдена
+          schema:
+            type: string
+        "405":
+          description: Метод не поддерживается
+          schema:
+            type: string
+      summary: Удалить задачу
+      tags:
+      - tasks
+    get:
+      description: Возвращает массив всех задач, отсортированных по дате создания
+        (новые первыми).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Task'
+            type: array
+        "405":
+          description: Метод не поддерживается
+          schema:
+            type: string
+        "500":
+          description: Ошибка получения задач из БД
+          schema:
+            type: string
+      summary: Получить список всех задач
+      tags:
+      - tasks
+    patch:
+      description: Переводит флаг `is_done` задачи в статус `true` по её UUID.
+      parameters:
+      - description: UUID задачи
+        format: uuid
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Task'
+        "400":
+          description: Не указан ID задачи
+          schema:
+            type: string
+        "404":
+          description: Задача не найдена
+          schema:
+            type: string
+        "405":
+          description: Метод не поддерживается
+          schema:
+            type: string
+      summary: Отметить задачу как выполненную
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Создает задачу с переданным заголовком и описанием. Генерирует
+        уникальный UUID.
+      parameters:
+      - description: Данные для создания задачи
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreateTaskInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Task'
+        "400":
+          description: Некорректный JSON или пустой заголовок
+          schema:
+            type: string
+        "405":
+          description: Метод не поддерживается
+          schema:
+            type: string
+        "500":
+          description: Ошибка сохранения задачи в БД
+          schema:
+            type: string
+      summary: Создать новую задачу
+      tags:
+      - tasks
+    put:
+      consumes:
+      - application/json
+      description: Позволяет передать новый title, новый desc или оба поля сразу для
+        задачи с указанным UUID.
+      parameters:
+      - description: UUID задачи
+        format: uuid
+        in: query
+        name: id
+        required: true
+        type: string
+      - description: Поля для обновления
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateTaskInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Task'
+        "400":
+          description: Не указан ID, некорректный JSON или не передано полей
+          schema:
+            type: string
+        "404":
+          description: Задача не найдена
+          schema:
+            type: string
+      summary: Обновить заголовок и/или описание задачи
+      tags:
+      - tasks
+swagger: "2.0"
